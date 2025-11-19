@@ -62,7 +62,7 @@
         #sankey-chart {
             width: 100%;
             min-width: 780px;
-            height: 880px;
+            height: 840px;
         }
 
         #sankey-chart svg {
@@ -73,8 +73,14 @@
 
         @media (max-width: 768px) {
             .chart-container {
-                padding: 15px;
+                padding: 15px clamp(16px, 4vw, 42px);
                 border-radius: 20px;
+            }
+
+            #sankey-chart {
+                min-width: max(780px, calc(100vw + 160px));
+                padding-left: clamp(14px, 4vw, 40px);
+                padding-right: clamp(28px, 5.5vw, 64px);
             }
         }
         
@@ -403,7 +409,7 @@
         
         <!-- Десктопная версия -->
         <div class="desktop-view">
-            <div class="chart-container">
+            <div class="chart-container" id="chart-section">
                 <div id="sankey-chart"></div>
             </div>
         </div>
@@ -584,7 +590,7 @@
 
     <!-- Плавающая навигация (3 кнопки) -->
     <div class="floating-nav">
-        <button class="floating-nav-btn to-chart" onclick="window.scrollTo({ top: 0, behavior: 'smooth' });">
+        <button class="floating-nav-btn to-chart" onclick="document.getElementById('chart-section').scrollIntoView({ behavior: 'smooth', block: 'start' });">
             К графику
         </button>
         <button class="floating-nav-btn to-expenses" onclick="document.getElementById('expenses-section').scrollIntoView({ behavior: 'smooth' });">
@@ -705,33 +711,35 @@
                     ? { top: 44, right: 110, bottom: 22, left: 150 }
                     : { top: 52, right: 200, bottom: 26, left: 230 };
                 const width = Math.max(containerWidth - margin.left - margin.right, 320);
-                const viewWidth = width + margin.left + margin.right;
-                const height = 880 - margin.top - margin.bottom;
+                const extraLeftSpace = isCompact ? Math.max(16, width * 0.02) : 0;
+                const extraRightSpace = isCompact ? Math.max(36, width * 0.055) : 0;
+                const viewWidth = width + margin.left + margin.right + extraLeftSpace + extraRightSpace;
+                const height = 820 - margin.top - margin.bottom;
 
                 // Относительное позиционирование для текстовых элементов
                 // Разделяем margin на зоны: [название | отступ | значение | gap | узел]
                 const textLayout = {
                     valueZoneWidth: Math.max(40, Math.min(margin.left, margin.right) * 0.22),
                     valueToNodeGap: Math.max(8, Math.min(margin.left, margin.right) * 0.055),
-                    leftNameGap: Math.max(14, margin.left * 0.1),
+                    leftNameGap: Math.max(12, (margin.left + extraLeftSpace) * 0.04),
                     rightNameGap: Math.max(18, margin.right * 0.12)
                 };
 
                 const svg = d3.select("#sankey-chart")
                     .append("svg")
-                    .attr("viewBox", `0 0 ${viewWidth} 880`)
+                    .attr("viewBox", `0 0 ${viewWidth} 820`)
                     .attr("width", viewWidth)
-                    .attr("height", 880)
+                    .attr("height", 820)
                     .attr("preserveAspectRatio", "xMidYMin meet")
                     .style("width", "100%")
                     .style("height", "auto")
                     .append("g")
-                    .attr("transform", `translate(${margin.left},${margin.top})`);
+                    .attr("transform", `translate(${margin.left + extraLeftSpace},${margin.top})`);
 
                 const sankey = d3.sankey()
                     .nodeId(d => d.id)
                     .nodeWidth(isCompact ? 40 : 48)
-                    .nodePadding(isCompact ? 14 : 18)
+                    .nodePadding(isCompact ? 12 : 16)
                     .extent([[0, 0], [width, height]]);
 
                 const data = JSON.parse(JSON.stringify(sankeyData));
@@ -917,7 +925,7 @@
                     .attr("dy", "1.1em")
                     .attr("text-anchor", "start") // Все значения с левым выравниванием
                     .attr("class", "node-value-label")
-                    .style("font-size", "9px")
+                    .style("font-size", "11px")
                     .style("font-weight", "600")
                     .style("fill", "#6b7280")
                     .text(d => {
@@ -983,13 +991,13 @@
             renderSankey();
 
             // Адаптивность при изменении размера окна
-            let resizeTimer;
-            window.addEventListener('resize', () => {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(() => {
-                    renderSankey();
-                }, 250);
-            });
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                renderSankey();
+            }, 250);
+        });
         }
 
         // Показ/скрытие плавающей навигации
