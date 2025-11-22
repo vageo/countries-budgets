@@ -150,9 +150,7 @@
         }
 
         /* Индикатор горизонтальной прокрутки для мобильных */
-        /* Индикатор горизонтальной прокрутки для мобильных (старый стиль) */
         .scroll-hint {
-            display: none;
             position: absolute;
             bottom: 60px;
             left: 50%;
@@ -164,22 +162,30 @@
             font-size: 14px;
             font-weight: 600;
             box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
-            z-index: 100;
+            z-index: 1000;
+            display: flex;
             align-items: center;
             gap: 8px;
             pointer-events: none;
-            transition: opacity 0.3s, transform 0.3s;
+            transition: opacity 0.3s ease, transform 0.3s ease;
             white-space: nowrap;
             animation: pulse 2s ease-in-out infinite;
+            opacity: 0;
+            visibility: hidden;
+            -webkit-transform: translateX(-50%);
+            -webkit-backface-visibility: hidden;
         }
 
         .scroll-hint.visible {
-            display: flex;
+            opacity: 1;
+            visibility: visible;
         }
 
         .scroll-hint.hidden {
             opacity: 0;
+            visibility: hidden;
             transform: translateX(-50%) translateY(10px);
+            -webkit-transform: translateX(-50%) translateY(10px);
         }
 
         .scroll-hint-arrow {
@@ -1250,14 +1256,24 @@
             const isMobile = () => window.innerWidth <= 768;
 
             function showScrollHint() {
-                if (!isMobile() || !chartInView || hintVisible) return;
+                if (!isMobile()) return;
+
+                // На iOS показываем кнопку даже если chartInView = false для отладки
                 if (hideTimer) {
                     clearTimeout(hideTimer);
                     hideTimer = null;
                 }
+
+                // Принудительно удаляем класс hidden
                 scrollHint.classList.remove('hidden');
-                scrollHint.classList.add('visible');
-                hintVisible = true;
+
+                // Используем requestAnimationFrame для лучшей совместимости с iOS
+                requestAnimationFrame(() => {
+                    scrollHint.classList.add('visible');
+                    // Форсируем перерисовку для iOS
+                    scrollHint.style.display = 'flex';
+                    hintVisible = true;
+                });
             }
 
             function hideScrollHint() {
@@ -1271,10 +1287,12 @@
             }
 
             function reevaluateHint() {
-                if (!isMobile() || !chartInView) {
+                if (!isMobile()) {
                     hideScrollHint();
                     return;
                 }
+
+                // Упрощённая логика для iOS - показываем если скролл в начале
                 if (chartContainer.scrollLeft <= returnThreshold) {
                     showScrollHint();
                 } else {
@@ -1282,14 +1300,22 @@
                 }
             }
 
-            const chartObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    chartInView = entry.isIntersecting;
-                    reevaluateHint();
-                });
-            }, { threshold: 0.2 });
+            // Проверка поддержки IntersectionObserver
+            if (window.IntersectionObserver) {
+                const chartObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        chartInView = entry.isIntersecting;
+                        if (isMobile() && entry.isIntersecting) {
+                            reevaluateHint();
+                        }
+                    });
+                }, { threshold: 0.1 });
 
-            chartObserver.observe(chartContainer);
+                chartObserver.observe(chartContainer);
+            } else {
+                // Fallback для старых браузеров - считаем что диаграмма всегда видна
+                chartInView = true;
+            }
 
             chartContainer.addEventListener('scroll', () => {
                 if (chartContainer.scrollLeft > startThreshold) {
@@ -1301,10 +1327,27 @@
 
             window.addEventListener('resize', () => {
                 reevaluateHint();
-            });
+            }, { passive: true });
 
-            // Первичная проверка после отрисовки
-            setTimeout(reevaluateHint, 400);
+            // Увеличенная задержка для iOS и форсированная проверка
+            setTimeout(() => {
+                if (isMobile()) {
+                    chartInView = true; // Форсируем для первого показа на мобильных
+                    reevaluateHint();
+
+                    // Диагностика для отладки на iOS (можно удалить после исправления)
+                    console.log('Scroll hint debug:', {
+                        isMobile: isMobile(),
+                        chartInView: chartInView,
+                        hintVisible: hintVisible,
+                        scrollLeft: chartContainer.scrollLeft,
+                        hasVisibleClass: scrollHint.classList.contains('visible'),
+                        computedDisplay: window.getComputedStyle(scrollHint).display,
+                        computedOpacity: window.getComputedStyle(scrollHint).opacity,
+                        computedVisibility: window.getComputedStyle(scrollHint).visibility
+                    });
+                }
+            }, 800);
         })();
         } // конец initializeChart
     </script>
