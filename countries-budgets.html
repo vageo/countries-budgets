@@ -1044,7 +1044,13 @@
                     .attr("class", "node-name-label")
                     .style("font-size", "11px")
                     .style("font-weight", "500")
-                    .style("fill", "#374151");
+                    .style("fill", "#374151")
+                    .style("cursor", d => d.targetId ? "pointer" : "default")
+                    .on("click", function(event, d) {
+                        if (d.targetId) {
+                            document.getElementById(d.targetId).scrollIntoView({ behavior: 'smooth' });
+                        }
+                    });
 
                 // Рендерим названия (одно- или многострочные)
                 nameText.each(function(d) {
