@@ -224,6 +224,18 @@
             font-weight: 500;
             fill: #374151;
         }
+
+        .node-name-label.clickable {
+            text-decoration: underline;
+            text-decoration-color: rgba(59, 130, 246, 0.4);
+            text-decoration-thickness: 1px;
+            text-underline-offset: 2px;
+        }
+
+        .node-name-label.clickable:hover {
+            text-decoration-color: rgba(59, 130, 246, 0.8);
+            fill: #3b82f6;
+        }
         
         .link {
             fill: none;
@@ -1041,7 +1053,7 @@
                     })
                     .attr("y", d => d.y0)
                     .attr("text-anchor", d => d.x0 < width / 2 ? "end" : "start")
-                    .attr("class", "node-name-label")
+                    .attr("class", d => d.targetId ? "node-name-label clickable" : "node-name-label")
                     .style("font-size", "11px")
                     .style("font-weight", "500")
                     .style("fill", "#374151")
