@@ -1592,8 +1592,19 @@
             document.body.style.overflow = ''; // Восстановить скролл
         }
 
+        // Флаг для предотвращения множественных вызовов Web Share API
+        let isSharing = false;
+
         // Нативный шеринг через Web Share API
         async function handleNativeShare() {
+            // Защита от множественных одновременных вызовов
+            if (isSharing) {
+                console.log('Share already in progress, ignoring click');
+                return;
+            }
+
+            isSharing = true;
+
             // Amplitude: клик на кнопку
             trackAmplitudeEvent('Share Button Clicked', {
                 method: 'native'
@@ -1618,6 +1629,9 @@
                 if (err.name !== 'AbortError') {
                     console.error('Share error:', err);
                 }
+            } finally {
+                // Снимаем блокировку после завершения (успеха или ошибки)
+                isSharing = false;
             }
         }
 
