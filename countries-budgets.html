@@ -1582,21 +1582,19 @@
         // Генерация ссылок для мессенджеров с UTM-метками
         function generateShareUrls() {
             const baseUrl = window.location.origin + window.location.pathname;
-            const title = encodeURIComponent('Бюджет РФ 2025 — наглядная визуализация');
-            const text = encodeURIComponent('Наглядная визуализация: ↓40.3 трлн доходов, ↑41.5 трлн расходов');
 
             return {
                 telegram: {
-                    app: `tg://share/url?url=${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=telegram')}&text=${text}`,
-                    web: `https://t.me/share/url?url=${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=telegram')}&text=${text}`
+                    app: `tg://share/url?url=${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=telegram')}`,
+                    web: `https://t.me/share/url?url=${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=telegram')}`
                 },
                 whatsapp: {
-                    app: `whatsapp://send?text=${text}%20${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=whatsapp')}`,
-                    web: `https://wa.me/?text=${text}%20${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=whatsapp')}`
+                    app: `whatsapp://send?text=${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=whatsapp')}`,
+                    web: `https://wa.me/?text=${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=whatsapp')}`
                 },
                 vk: {
-                    app: `vk://share?url=${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=vk')}&title=${title}`,
-                    web: `https://vk.com/share.php?url=${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=vk')}&title=${title}`
+                    app: `vk://share?url=${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=vk')}`,
+                    web: `https://vk.com/share.php?url=${encodeURIComponent(baseUrl + '?utm_source=share&utm_medium=fallback&utm_campaign=vk')}`
                 }
             };
         }
@@ -1636,8 +1634,6 @@
             });
 
             const shareData = {
-                title: 'Бюджет РФ 2025 — наглядная визуализация',
-                text: 'Наглядная визуализация: ↓40.3 трлн доходов, ↑41.5 трлн расходов',
                 url: window.location.origin + window.location.pathname +
                      '?utm_source=share&utm_medium=native&utm_campaign=system'
             };
