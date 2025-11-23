@@ -1389,14 +1389,36 @@
 
         // Проверка поддержки IntersectionObserver
         if (!window.IntersectionObserver) {
-            // Fallback для старых браузеров - показываем кнопки всегда
-            if (floatingNav) floatingNav.classList.add('visible');
+            // Fallback для старых браузеров - используем scroll событие
+            let hasScrolledToExpenses = false;
+
+            const checkScroll = () => {
+                if (!expensesSection) return;
+
+                const rect = expensesSection.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+
+                if (isVisible && !hasScrolledToExpenses) {
+                    hasScrolledToExpenses = true;
+                    floatingNav.classList.add('visible');
+                } else if (!isVisible && rect.top > 0) {
+                    floatingNav.classList.remove('visible');
+                    hasScrolledToExpenses = false;
+                }
+            };
+
+            window.addEventListener('scroll', checkScroll, { passive: true });
+            checkScroll(); // Проверка при загрузке
         } else {
+        // Флаг для отслеживания первого показа кнопок
+        let buttonsShownOnce = false;
+
         // Показываем плавающую навигацию когда пользователь доскроллил до раздела расходов
         const expensesObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
                     floatingNav.classList.add('visible');
+                    buttonsShownOnce = true;
                 } else {
                     // Скрываем кнопки только если проскроллили наверх (выше раздела расходов)
                     if (entry.boundingClientRect.top > 0) {
@@ -1418,8 +1440,11 @@
                     // Скрываем кнопки когда футер виден
                     floatingNav.classList.remove('visible');
                 } else {
-                    // Показываем кнопки обратно когда скроллим наверх от футера
-                    floatingNav.classList.add('visible');
+                    // Показываем кнопки обратно только если они уже показывались ранее
+                    // Это предотвращает показ кнопок при загрузке страницы
+                    if (buttonsShownOnce) {
+                        floatingNav.classList.add('visible');
+                    }
                 }
             });
         }, { threshold: 0.1 });
