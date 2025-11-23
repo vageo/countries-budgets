@@ -1699,8 +1699,20 @@
             });
         }
 
+        } // конец initializeChart
+
+        // ========== ИНИЦИАЛИЗАЦИЯ КНОПКИ "ПОДЕЛИТЬСЯ" ==========
+        // ВАЖНО: вынесено за пределы initializeChart() для корректной работы
+
         // Инициализация с проверкой загрузки Amplitude
-        document.addEventListener('DOMContentLoaded', () => {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initShareButtonWhenReady);
+        } else {
+            // DOM уже загружен
+            initShareButtonWhenReady();
+        }
+
+        function initShareButtonWhenReady() {
             // Проверяем что Amplitude загружен
             const checkAmplitude = setInterval(() => {
                 if (typeof amplitude !== 'undefined' && amplitude.track) {
@@ -1717,9 +1729,7 @@
                     initShareButton();
                 }
             }, 5000);
-        });
-
-        } // конец initializeChart
+        }
     </script>
 
     <!-- Amplitude Analytics (API key loaded from Supabase Edge Function) -->
