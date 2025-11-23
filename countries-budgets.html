@@ -1539,6 +1539,10 @@
             }, 800);
         })();
 
+        // ========== ИНИЦИАЛИЗАЦИЯ КНОПКИ "ПОДЕЛИТЬСЯ" ==========
+        // Вызывается внутри initializeChart() для доступа к DOM элементам
+        initShareButton();
+
         // ========== ФУНКЦИОНАЛ КНОПКИ "ПОДЕЛИТЬСЯ" ==========
 
         // Вспомогательная функция для безопасного трекинга Amplitude
@@ -1700,36 +1704,6 @@
         }
 
         } // конец initializeChart
-
-        // ========== ИНИЦИАЛИЗАЦИЯ КНОПКИ "ПОДЕЛИТЬСЯ" ==========
-        // ВАЖНО: вынесено за пределы initializeChart() для корректной работы
-
-        // Инициализация с проверкой загрузки Amplitude
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initShareButtonWhenReady);
-        } else {
-            // DOM уже загружен
-            initShareButtonWhenReady();
-        }
-
-        function initShareButtonWhenReady() {
-            // Проверяем что Amplitude загружен
-            const checkAmplitude = setInterval(() => {
-                if (typeof amplitude !== 'undefined' && amplitude.track) {
-                    clearInterval(checkAmplitude);
-                    initShareButton();
-                }
-            }, 100);
-
-            // Fallback: если через 5 сек не загрузился — инициализируем без Amplitude
-            setTimeout(() => {
-                clearInterval(checkAmplitude);
-                if (typeof amplitude === 'undefined') {
-                    console.warn('Amplitude not loaded, initializing share without tracking');
-                    initShareButton();
-                }
-            }, 5000);
-        }
     </script>
 
     <!-- Amplitude Analytics (API key loaded from Supabase Edge Function) -->
