@@ -1,0 +1,34 @@
+name: Keep Supabase Alive
+
+on:
+  schedule:
+    # Пн и Чт в 08:00 UTC — максимальный разрыв 4 дня, запас 3 дня до паузы
+    - cron: '0 8 * * 1,4'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update keepalive timestamp in Supabase Postgres
+        env:
+          SUPABASE_URL: https://vwfzeutapgquuysjqoec.supabase.co
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          HTTP_CODE=$(curl -s -o /tmp/response.txt -w "%{http_code}" \
+            "${SUPABASE_URL}/rest/v1/keepalive?id=eq.1" \
+            -X PATCH \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: return=representation" \
+            -d "{\"pinged_at\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}")
+
+          echo "HTTP ${HTTP_CODE}: $(cat /tmp/response.txt)"
+
+          if [ "${HTTP_CODE}" -ge 200 ] && [ "${HTTP_CODE}" -lt 300 ]; then
+            echo "DB ping OK"
+          else
+            echo "::error::Supabase ping failed (HTTP ${HTTP_CODE})"
+            exit 1
+          fi
